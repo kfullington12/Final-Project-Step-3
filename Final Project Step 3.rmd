@@ -1,0 +1,460 @@
+---
+title: "Final Project Step 3"
+output: pdf_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+# Unemployment During the Covid-19 Pandemic
+
+## Introduction
+In March of 2020, a virus called Covid-19 started appearing at alarming rates in the United States after ravaging much of China and East Asia. Health officials encouraged the government and businesses to implement lock-downs to prevent the spread of the virus, for which there was no vaccine. The idea was presented that we could flatten the curve (of the number of cases) and prevent our vulnerable health care system from complete collapse as hospitalizations drastically increased. For roughly three months or less, many businesses closed their doors or implemented strict social distancing policies. Many people stayed primarily in their homes and many large companies initiated teleworking policies. Among the hardest hit businesses were restaurants, bars, clubs and others that depended on serving as many people as possible in enclosed spaces. 
+
+While many people chafe at being confined to their homes, perhaps a more important impact of the pandemic has been on employment. Starting in March of 2020, many large companies began to lay off their workers, citing decreased profits or other issues caused by the pandemic. Based on numbers from the U.S. Bureau of Labor Statistics, the overall employment rate decreased from 60.7% in the second quarter of 2019, to 53.0% in the second quarter of 2020.[https://www.bls.gov/spotlight/2022/demographic-changes-in-employment-during-the-pandemic/home.htm]
+
+## The Problem Statement
+One obvious risk-factor for unemployment during the pandemic was industry. As mentioned in the introduction, those working in the food and service industries were likely to be let go due to the conditions created by the pandemic. On a more micro level, I wanted to know what other characteristics were risk factors for job loss during a situation such as this pandemic. Specifically, what demographic traits (gender and/or race) were the strongest indicators for employment status during the widespread illness?
+
+## Addressing the Problem Statement
+To address this problem statement, I first went to the U.S. Bureau of Labor Statistics to gather data. I downloaded the tables that addressed demographics and employment status from 2019, 2020, and 2021. Having data from multiple years to compare would make drawing comparisons easier than analyzing only 2020 (the year the pandemic began). Once I had the data sets, I read them into RStudio and cleaned the data. I separated the specific data I was most interested from the large amount of statistics collected by the Bureau. I made several different data frames, dividing the data into the following sections: white men, white women, Black men, Black women, Asian men, and Asian women. 
+
+I did this for three years: 2019, 2020, and 2021. I analyzed 2019 to get a sort of baseline example of years without pandemics such as Covid-19. Evidence shows that the unemployment rate gradually shrank as the pandemic went on and we were faced with the choice of whether to continue implementing the strictest safety measures or to continue making a living. So, 2021 provides more of an idea of what the baseline unemployment would be during an extended pandemic.
+
+After splitting off the data into sections and years, I used the sections to create charts and plots that could be compared to one another. I was hoping to perform a logistic regression or test for correlation, but as will be discussed in the limitations section, the data I was able to obtain did not make that possible.
+
+
+## Analysis
+
+### 2019
+
+```{r echo = FALSE, include = FALSE}
+library(readxl)
+# excel_sheets("C:/Users/runek/dsc520/data/cpsa2019.xlsx")
+df2019age_sex_race <- read_excel("C:/Users/runek/dsc520/data/cpsa2019.xlsx", sheet = "cpsaat03")
+
+```
+
+```{r echo = FALSE, include = FALSE}
+
+library(tidyverse)
+df2019age_sex_race <- na.omit(df2019age_sex_race)
+
+library(dplyr)
+# colnames(df2019age_sex_race)
+
+df2019age_sex_race <- df2019age_sex_race %>% rename(Age = 1)
+
+df2019age_sex_race <- df2019age_sex_race %>% rename("Civ_Total_Pop" = "...2", "Emp_Total" = "...3", "Percent_of_Pop" = "...4", "Civ_Emp_Total" = "...5", "Civ_Emp_Percent" = "...6", "Unemp_Total" = "...7", "Unemp_Percent" = "...8", "Not_in_Labor_Force" = "...9")
+
+# head(df2019age_sex_race)
+
+df2019age_sex_race$Age <- as.factor(df2019age_sex_race$Age)
+df2019age_sex_race$Civ_Total_Pop <- as.numeric(df2019age_sex_race$Civ_Total_Pop)
+df2019age_sex_race$Emp_Total <- as.numeric(df2019age_sex_race$Emp_Total)
+df2019age_sex_race$Percent_of_Pop <- as.numeric(df2019age_sex_race$Percent_of_Pop)
+df2019age_sex_race$Civ_Emp_Total <- as.numeric(df2019age_sex_race$Civ_Emp_Total)
+df2019age_sex_race$Civ_Emp_Percent <- as.numeric(df2019age_sex_race$Civ_Emp_Percent)
+df2019age_sex_race$Unemp_Total <- as.numeric(df2019age_sex_race$Unemp_Total)
+df2019age_sex_race$Unemp_Percent <- as.numeric(df2019age_sex_race$Unemp_Percent)
+df2019age_sex_race$Not_in_Labor_Force <- as.numeric(df2019age_sex_race$Not_in_Labor_Force)
+
+WHMAgeColumn19 <- df2019age_sex_race[89:110, 1]
+WHMUnempTotalColumn19 <- df2019age_sex_race[89:110, 7]
+WHWUnempTotalColumn19 <- df2019age_sex_race[111:132, 7]
+BLMenUnempTotalColumn19 <- df2019age_sex_race[155:176, 7]
+BLWomUnempTotalColumn19 <- df2019age_sex_race[177:198, 7]
+AsiMenUnempTotalColumn19 <- df2019age_sex_race[221:242, 7]
+AsiWomUnempTotalColumn19 <- df2019age_sex_race[243:264, 7]
+
+UnempData19 <- data.frame(WHMAgeColumn19, WHMUnempTotalColumn19, WHWUnempTotalColumn19, BLMenUnempTotalColumn19, BLWomUnempTotalColumn19, AsiMenUnempTotalColumn19, AsiWomUnempTotalColumn19)
+
+UnempData19 <- UnempData19 %>% rename("W_Men_Unemp" = "Unemp_Total", "W_Women_Unemp" = "Unemp_Total.1", "Bl_Men_Unemp" = "Unemp_Total.2", "Bl_Women_Unemp" = "Unemp_Total.3", "Asi_Men_Unemp" = "Unemp_Total.4", "Asi_Women_Unemp" = "Unemp_Total.5")
+
+```
+```{r echo = FALSE, include = FALSE}
+
+df2019_UnempPercent_white_men <- df2019age_sex_race[89, 8]
+
+df2019_UnempPercent_white_women <- df2019age_sex_race[111, 8]
+
+df2019_UnempPercent_black_men <- df2019age_sex_race[155, 8]
+
+df2019_UnempPercent_black_women <- df2019age_sex_race[177, 8]
+
+df2019_UnempPercent_asian_men <- df2019age_sex_race[221, 8]
+
+df2019_UnempPercent_asian_women <- df2019age_sex_race[243, 8]
+
+UnempPercentData19 <- data.frame(df2019_UnempPercent_white_men, df2019_UnempPercent_white_women, df2019_UnempPercent_black_men, df2019_UnempPercent_black_women, df2019_UnempPercent_asian_men, df2019_UnempPercent_asian_women)
+
+UnempPercentData19 <- UnempPercentData19 %>% rename("White Men" = "Unemp_Percent", "White Women" = "Unemp_Percent.1", "Black Men" = "Unemp_Percent.2", "Black Women" = "Unemp_Percent.3", "Asian Men" = "Unemp_Percent.4", "Asian Women" = "Unemp_Percent.5")
+
+rownames(UnempPercentData19) <- c("Percent_Unemployed")
+
+```
+```{r echo = FALSE, include = FALSE}
+
+library(reshape2)
+UnempPercentData19 <- as.data.frame(t(UnempPercentData19))
+
+```
+
+```{r echo = FALSE}
+Bar_Unemp_Percent19 <- ggplot(UnempPercentData19, aes(rownames(UnempPercentData19), Percent_Unemployed)) + geom_bar(stat = "identity", fill = "blue") + ggtitle("Percent Unemployed by Gender and Race - 2019") + xlab("Gender and Race") + ylab("Percent Unemployed") + theme_dark()
+
+Bar_Unemp_Percent19
+
+```
+
+```{r echo = FALSE, include = FALSE}
+
+df2019_UnempLog_white_men <- data.frame(df2019age_sex_race[89, 5:8])
+rownames(df2019_UnempLog_white_men) <- c("White Men")
+
+df2019_UnempLog_white_women <- data.frame(df2019age_sex_race[111, 5:8])
+rownames(df2019_UnempLog_white_women) <- c("White Women")
+
+df2019_UnempLog_black_men <- data.frame(df2019age_sex_race[155, 5:8])
+rownames(df2019_UnempLog_black_men) <- c("Black Men")
+
+df2019_UnempLog_black_women <- data.frame(df2019age_sex_race[177, 5:8])
+rownames(df2019_UnempLog_black_women) <- c("Black Women")
+
+df2019_UnempLog_asian_men <- data.frame(df2019age_sex_race[221, 5:8])
+rownames(df2019_UnempLog_asian_men) <- c("Asian Men")
+
+df2019_UnempLog_asian_women <- data.frame(df2019age_sex_race[243, 5:8])
+rownames(df2019_UnempLog_asian_women) <- c("Asian Women")
+
+UnempLogData19 <- rbind(df2019_UnempLog_white_men, df2019_UnempLog_white_women, df2019_UnempLog_black_men, df2019_UnempLog_black_women, df2019_UnempLog_asian_men, df2019_UnempLog_asian_women)
+
+```
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
+kable(UnempLogData19)
+```
+
+
+### 2020
+
+```{r echo = FALSE, include = FALSE}
+
+library(readxl)
+# excel_sheets("C:/Users/runek/dsc520/data/cpsa2020.xlsx")
+df2020age_sex_race <- read_excel("C:/Users/runek/dsc520/data/cpsa2020.xlsx", sheet = "cpsaat03")
+
+```
+
+```{r echo = FALSE, include = FALSE}
+
+library(tidyverse)
+df2020age_sex_race <- na.omit(df2020age_sex_race)
+
+library(dplyr)
+# colnames(df2020age_sex_race)
+
+df2020age_sex_race <- df2020age_sex_race %>% rename(Age = 1)
+
+df2020age_sex_race <- df2020age_sex_race %>% rename("Civ_Total_Pop" = "...2", "Emp_Total" = "...3", "Percent_of_Pop" = "...4", "Civ_Emp_Total" = "...5", "Civ_Emp_Percent" = "...6", "Unemp_Total" = "...7", "Unemp_Percent" = "...8", "Not_in_Labor_Force" = "...9")
+
+# head(df2020age_sex_race)
+
+df2020age_sex_race$Age <- as.factor(df2020age_sex_race$Age)
+df2020age_sex_race$Civ_Total_Pop <- as.numeric(df2020age_sex_race$Civ_Total_Pop)
+df2020age_sex_race$Emp_Total <- as.numeric(df2020age_sex_race$Emp_Total)
+df2020age_sex_race$Percent_of_Pop <- as.numeric(df2020age_sex_race$Percent_of_Pop)
+df2020age_sex_race$Civ_Emp_Total <- as.numeric(df2020age_sex_race$Civ_Emp_Total)
+df2020age_sex_race$Civ_Emp_Percent <- as.numeric(df2020age_sex_race$Civ_Emp_Percent)
+df2020age_sex_race$Unemp_Total <- as.numeric(df2020age_sex_race$Unemp_Total)
+df2020age_sex_race$Unemp_Percent <- as.numeric(df2020age_sex_race$Unemp_Percent)
+df2020age_sex_race$Not_in_Labor_Force <- as.numeric(df2020age_sex_race$Not_in_Labor_Force)
+
+WHMAgeColumn20 <- df2020age_sex_race[89:110, 1]
+WHMUnempTotalColumn20 <- df2020age_sex_race[89:110, 7]
+WHWUnempTotalColumn20 <- df2020age_sex_race[111:132, 7]
+BLMenUnempTotalColumn20 <- df2020age_sex_race[155:176, 7]
+BLWomUnempTotalColumn20 <- df2020age_sex_race[177:198, 7]
+AsiMenUnempTotalColumn20 <- df2020age_sex_race[221:242, 7]
+AsiWomUnempTotalColumn20 <- df2020age_sex_race[243:264, 7]
+
+UnempData20 <- data.frame(WHMAgeColumn20, WHMUnempTotalColumn20, WHWUnempTotalColumn20, BLMenUnempTotalColumn20, BLWomUnempTotalColumn20, AsiMenUnempTotalColumn20, AsiWomUnempTotalColumn20)
+
+```
+
+```{r echo = FALSE, include = FALSE}
+
+df2020_UnempPercent_white_men <- df2020age_sex_race[89, 8]
+
+df2020_UnempPercent_white_women <- df2020age_sex_race[111, 8]
+
+df2020_UnempPercent_black_men <- df2020age_sex_race[155, 8]
+
+df2020_UnempPercent_black_women <- df2020age_sex_race[177, 8]
+
+df2020_UnempPercent_asian_men <- df2020age_sex_race[221, 8]
+
+df2020_UnempPercent_asian_women <- df2020age_sex_race[243, 8]
+
+UnempPercentData20 <- data.frame(df2020_UnempPercent_white_men, df2020_UnempPercent_white_women, df2020_UnempPercent_black_men, df2020_UnempPercent_black_women, df2020_UnempPercent_asian_men, df2020_UnempPercent_asian_women)
+
+UnempPercentData20 <- UnempPercentData20 %>% rename("White Men" = "Unemp_Percent", "White Women" = "Unemp_Percent.1", "Black Men" = "Unemp_Percent.2", "Black Women" = "Unemp_Percent.3", "Asian Men" = "Unemp_Percent.4", "Asian Women" = "Unemp_Percent.5")
+
+rownames(UnempPercentData20) <- c("Percent_Unemployed")
+
+```
+
+```{r echo = FALSE, include = FALSE}
+
+library(reshape2)
+UnempPercentData20 <- as.data.frame(t(UnempPercentData20))
+
+```
+
+```{r echo = FALSE}
+
+Bar_Unemp_Percent20 <- ggplot(UnempPercentData20, aes(rownames(UnempPercentData20), Percent_Unemployed)) + geom_bar(stat = "identity", fill = "blue") + ggtitle("Percent Unemployed by Gender and Race - 2020") + xlab("Gender and Race") + ylab("Percent Unemployed") + theme_dark()
+
+Bar_Unemp_Percent20
+
+```
+```{r echo = FALSE, include = FALSE}
+
+df2020_UnempLog_white_men <- data.frame(df2020age_sex_race[89, 5:8])
+rownames(df2020_UnempLog_white_men) <- c("White Men")
+
+df2020_UnempLog_white_women <- data.frame(df2020age_sex_race[111, 5:8])
+rownames(df2020_UnempLog_white_women) <- c("White Women")
+
+df2020_UnempLog_black_men <- data.frame(df2020age_sex_race[155, 5:8])
+rownames(df2020_UnempLog_black_men) <- c("Black Men")
+
+df2020_UnempLog_black_women <- data.frame(df2020age_sex_race[177, 5:8])
+rownames(df2020_UnempLog_black_women) <- c("Black Women")
+
+df2020_UnempLog_asian_men <- data.frame(df2020age_sex_race[221, 5:8])
+rownames(df2020_UnempLog_asian_men) <- c("Asian Men")
+
+df2020_UnempLog_asian_women <- data.frame(df2020age_sex_race[243, 5:8])
+rownames(df2020_UnempLog_asian_women) <- c("Asian Women")
+
+UnempLogData20 <- rbind(df2020_UnempLog_white_men, df2020_UnempLog_white_women, df2020_UnempLog_black_men, df2020_UnempLog_black_women, df2020_UnempLog_asian_men, df2020_UnempLog_asian_women)
+
+```
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
+kable(UnempLogData20)
+```
+
+
+
+### 2021
+
+```{r echo = FALSE, include = FALSE}
+
+library(readxl)
+
+# excel_sheets("C:/Users/runek/dsc520/data/cpsa2021.xlsx")
+
+df2021age_sex_race <- read_excel("C:/Users/runek/dsc520/data/cpsa2021.xlsx", sheet = "cpsaat03")
+
+```
+
+```{r echo = FALSE, include = FALSE}
+
+library(tidyverse)
+
+df2021age_sex_race <- na.omit(df2021age_sex_race)
+
+library(dplyr)
+
+# colnames(df2021age_sex_race)
+
+
+df2021age_sex_race <- df2021age_sex_race %>% rename(Age = 1)
+
+df2021age_sex_race <- df2021age_sex_race %>% rename("Civ_Total_Pop" = "...2", "Emp_Total" = "...3", "Percent_of_Pop" = "...4", "Civ_Emp_Total" = "...5", "Civ_Emp_Percent" = "...6", "Unemp_Total" = "...7", "Unemp_Percent" = "...8", "Not_in_Labor_Force" = "...9")
+
+# head(df2021age_sex_race)
+
+df2021age_sex_race$Age <- as.factor(df2021age_sex_race$Age)
+df2021age_sex_race$Civ_Total_Pop <- as.numeric(df2021age_sex_race$Civ_Total_Pop)
+df2021age_sex_race$Emp_Total <- as.numeric(df2021age_sex_race$Emp_Total)
+df2021age_sex_race$Percent_of_Pop <- as.numeric(df2021age_sex_race$Percent_of_Pop)
+df2021age_sex_race$Civ_Emp_Total <- as.numeric(df2021age_sex_race$Civ_Emp_Total)
+df2021age_sex_race$Civ_Emp_Percent <- as.numeric(df2021age_sex_race$Civ_Emp_Percent)
+df2021age_sex_race$Unemp_Total <- as.numeric(df2021age_sex_race$Unemp_Total)
+df2021age_sex_race$Unemp_Percent <- as.numeric(df2021age_sex_race$Unemp_Percent)
+df2021age_sex_race$Not_in_Labor_Force <- as.numeric(df2021age_sex_race$Not_in_Labor_Force)
+
+
+
+
+WHMAgeColumn21 <- df2021age_sex_race[89:110, 1]
+WHMUnempTotalColumn21 <- df2021age_sex_race[89:110, 7]
+WHWUnempTotalColumn21 <- df2021age_sex_race[111:132, 7]
+BLMenUnempTotalColumn21 <- df2021age_sex_race[155:176, 7]
+BLWomUnempTotalColumn21 <- df2021age_sex_race[177:198, 7]
+AsiMenUnempTotalColumn21 <- df2021age_sex_race[221:242, 7]
+AsiWomUnempTotalColumn21 <- df2021age_sex_race[243:264, 7]
+
+UnempData21 <- data.frame(WHMAgeColumn21, WHMUnempTotalColumn21, WHWUnempTotalColumn21, BLMenUnempTotalColumn21, BLWomUnempTotalColumn21, AsiMenUnempTotalColumn21, AsiWomUnempTotalColumn21)
+
+UnempData21 <- UnempData21 %>% rename("W_Men_Unemp" = "Unemp_Total", "W_Women_Unemp" = "Unemp_Total.1", "Bl_Men_Unemp" = "Unemp_Total.2", "Bl_Women_Unemp" = "Unemp_Total.3", "Asi_Men_Unemp" = "Unemp_Total.4", "Asi_Women_Unemp" = "Unemp_Total.5")
+
+# head(UnempData21)
+
+# str(UnempData21)
+
+```
+
+```{r echo = FALSE, include = FALSE}
+df2021_age_white_men <- df2021age_sex_race[89:110,]
+
+df2021_age_white_women <- df2021age_sex_race[111:132,]
+
+df2021_age_black_men <- df2021age_sex_race[155:176,]
+
+df2021_age_black_women <- df2021age_sex_race[177:198,]
+
+df2021_age_asian_men <- df2021age_sex_race[221:242,]
+
+df2021_age_asian_women <- df2021age_sex_race[243:264,]
+
+
+# head(df2021_age_asian_men)
+
+```
+
+
+```{r echo = FALSE, include = FALSE}
+
+Bar_Chart_Unemp_WhiteMen_2021 <- ggplot(UnempData21, aes(x = Age, y = W_Men_Unemp)) + geom_bar(stat = "identity") + ggtitle("Age to Unemployment in White Men") + xlab("Age Range") + ylab("Number Unemployed")
+
+Bar_Chart_Unemp_WhiteMen_2021
+
+Bar_Chart_Unemp_WhiteWomen_2021 <- ggplot(UnempData21, aes(x = Age, y = W_Women_Unemp)) + geom_bar(stat = "identity") + ggtitle("Age to Unemployment in White Women") + xlab("Age Range") + ylab("Number Unemployed")
+
+Bar_Chart_Unemp_WhiteWomen_2021
+
+Bar_Chart_Unemp_BlackMen_2021 <- ggplot(UnempData21, aes(x = Age, y = Bl_Men_Unemp)) + geom_bar(stat = "identity") + ggtitle("Age to Unemployment in Black Men") + xlab("Age Range") + ylab("Number Unemployed")
+
+Bar_Chart_Unemp_BlackMen_2021
+
+Bar_Chart_Unemp_BackWomen_2021 <- ggplot(UnempData21, aes(x = Age, y = Bl_Women_Unemp)) + geom_bar(stat = "identity") + ggtitle("Age to Unemployment in Black Women") + xlab("Age Range") + ylab("Number Unemployed")
+
+Bar_Chart_Unemp_BackWomen_2021
+
+Bar_Chart_Unemp_AsianMen_2021 <- ggplot(UnempData21, aes(x = Age, y = Asi_Men_Unemp)) + geom_bar(stat = "identity") + ggtitle("Age to Unemployment in Asian Men") + xlab("Age Range") + ylab("Number Unemployed")
+
+Bar_Chart_Unemp_AsianMen_2021
+
+Bar_Chart_Unemp_AsianWomen_2021 <- ggplot(UnempData21, aes(x = Age, y = Asi_Women_Unemp)) + geom_bar(stat = "identity") + ggtitle("Age to Unemployment in Asian Women") + xlab("Age Range") + ylab("Number Unemployed")
+
+Bar_Chart_Unemp_AsianWomen_2021
+
+```
+
+
+```{r echo = FALSE, include = FALSE}
+
+# df2021_age_white_men <- df2021age_sex_race[89:110,]
+
+# df2021_age_white_women <- df2021age_sex_race[111:132,]
+
+# df2021_age_black_men <- df2021age_sex_race[155:176,]
+
+# df2021_age_black_women <- df2021age_sex_race[177:198,]
+
+# df2021_age_asian_men <- df2021age_sex_race[221:242,]
+
+# df2021_age_asian_women <- df2021age_sex_race[243:264,]
+
+
+
+df2021_UnempPercent_white_men <- df2021age_sex_race[89, 8]
+
+df2021_UnempPercent_white_women <- df2021age_sex_race[111, 8]
+
+df2021_UnempPercent_black_men <- df2021age_sex_race[155, 8]
+
+df2021_UnempPercent_black_women <- df2021age_sex_race[177, 8]
+
+df2021_UnempPercent_asian_men <- df2021age_sex_race[221, 8]
+
+df2021_UnempPercent_asian_women <- df2021age_sex_race[243, 8]
+
+UnempPercentData21 <- data.frame(df2021_UnempPercent_white_men, df2021_UnempPercent_white_women, df2021_UnempPercent_black_men, df2021_UnempPercent_black_women, df2021_UnempPercent_asian_men, df2021_UnempPercent_asian_women)
+
+
+UnempPercentData21 <- UnempPercentData21 %>% rename("White Men" = "Unemp_Percent", "White Women" = "Unemp_Percent.1", "Black Men" = "Unemp_Percent.2", "Black Women" = "Unemp_Percent.3", "Asian Men" = "Unemp_Percent.4", "Asian Women" = "Unemp_Percent.5")
+
+rownames(UnempPercentData21) <- c("Percent_Unemployed")
+
+library(reshape2)
+UnempPercentData21 <- as.data.frame(t(UnempPercentData21))
+
+```
+
+```{r echo = FALSE}
+
+Bar_Unemp_Percent21 <- ggplot(UnempPercentData21, aes(rownames(UnempPercentData21), Percent_Unemployed)) + geom_bar(stat = "identity", fill = "blue") + ggtitle("Percent Unemployed by Gender and Race - 2021") + xlab("Gender and Race") + ylab("Percent Unemployed") + theme_dark()
+
+Bar_Unemp_Percent21
+
+```
+
+```{r echo = FALSE, include = FALSE}
+
+df2021_UnempLog_white_men <- data.frame(df2021age_sex_race[89, 5:8])
+rownames(df2021_UnempLog_white_men) <- c("White Men")
+
+df2021_UnempLog_white_women <- data.frame(df2021age_sex_race[111, 5:8])
+rownames(df2021_UnempLog_white_women) <- c("White Women")
+
+df2021_UnempLog_black_men <- data.frame(df2021age_sex_race[155, 5:8])
+rownames(df2021_UnempLog_black_men) <- c("Black Men")
+
+df2021_UnempLog_black_women <- data.frame(df2021age_sex_race[177, 5:8])
+rownames(df2021_UnempLog_black_women) <- c("Black Women")
+
+df2021_UnempLog_asian_men <- data.frame(df2021age_sex_race[221, 5:8])
+rownames(df2021_UnempLog_asian_men) <- c("Asian Men")
+
+df2021_UnempLog_asian_women <- data.frame(df2021age_sex_race[243, 5:8])
+rownames(df2021_UnempLog_asian_women) <- c("Asian Women")
+
+UnempLogData21 <- rbind(df2021_UnempLog_white_men, df2021_UnempLog_white_women, df2021_UnempLog_black_men, df2021_UnempLog_black_women, df2021_UnempLog_asian_men, df2021_UnempLog_asian_women)
+
+```
+
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
+kable(UnempLogData21)
+```
+
+## Implications
+Based on the data I analyzed in this paper, we see that unemployment for Black men and Black women is consistently the highest. Even when unemployment for other demographics increased, it remained the highest for these two groups. Additionally, we can see from the bar charts that even as unemployment decreased in 2021 unemployment for these groups remained high. In fact, it looks as though unemployment was close for all groups in 2020. But as people in those demographics returned to employment, unemployment for Black men and women remained high. 
+
+More analysis is needed to discover the specific reasons that unemployment for Black men and women is so high compared to other demographics. Potential influencing factors that were left out of this analysis include job industry and age.
+
+
+## Limitations
+One limitation of the analysis I performed was access to data. I would have liked to explore the impact on other ethnicities, in particular that of the United States' indigenous population, otherwise known as Native Americans. I suspect that this population was the hardest hit by pandemic unemployment (perhaps excepting Black women), but from the data I had there is no way to prove this. On the section of data I analyzed, there was also no information on Hispanic/Latinx populations.
+
+Another limitation was the number of years analyzed. Many, many factors influence unemployment rates in the US. It is hard to say whether 2019 was a good baseline from which to get a "standard" unemployment rate. If this problem is ever to be analyzed in more depth, it would probably be good practice to analyze unemployment from many different years to account for the variability and changing factors that go into predicting what the unemployment rate will be.
+
+Additionally, the data from the Bureau that I was able to analyze shows unemployment over a full year. This does not account for the level of variability caused by the pandemic. For instance, Covid-19 cases do not appear at a consistent level. Rather, they rise to peaks and fall to valleys over time. Notably the case numbers rise during the colder months and fall during the warmer months. Consider the nature of food service jobs. They are often part-time and heavily dependent upon the demand for the services the business provides. When case numbers peak, cities and various levels of government implement mask mandates or other measures. This impacts the level of demand there is for certain types of professions. For instance, in the food service industries it is likely that fewer customers will eat indoors or even go to restaurants at all. This decreases the demand for employees such as waitstaff, and can lead to layoffs. Thus, it would be important for a more accurate analysis to analyze the data for smaller time frames. 
+
+Finally, it turns out that information on the specific results of surveys about unemployment and demographic factors are rather difficult for a non-government employee to obtain. I would have preferred to work with a large table with yes or no answers and rankings. I was planning to do a logistic regression in order to predict risk of job-loss based on demographic traits, but I do not have the right data to perform the regression.
+
+## Concluding Remarks
+
+My first step were I to pursue modeling this data, would be to get my hands on specific survey data. This type of data would include individuals answer selections, primarily yes/no questions. This would make it suitable for logistic regression in addition to correlation tests.
+
+Once this data was obtained, I would use the techniques I learned in this course to discover any significant correlations in the data (between industry and ethnicity for instance). Then I would choose a number of variables to attempt to predict based on those correlation tests. 
+
+
+
+
+
